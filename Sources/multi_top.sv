@@ -7,7 +7,6 @@ input logic rst,
 input logic enable,
 
 input logic [1:0] modulation,
-
 output logic signed [21:0] wave_out
 
 );
@@ -15,6 +14,8 @@ output logic signed [21:0] wave_out
 /////////////////////////////////////////////////
 // Internal signals
 /////////////////////////////////////////////////
+
+
 
 logic bit_in;
 
@@ -36,6 +37,17 @@ logic symbol_tick;
 
 logic signed [15:0] sin_out;
 logic signed [15:0] cos_out;
+
+logic signed [21:0] wave_out_dbg;
+
+logic bit_valid;
+
+always_ff @(posedge clk or posedge rst) begin
+    if (rst)
+        bit_valid <= 1'b0;
+    else
+        bit_valid <= request_bit;
+end
 
 /////////////////////////////////////////////////
 // Feeder
@@ -65,7 +77,7 @@ multi_fed_packet_generator pkt(
 
 .bit_in(bit_in),
 
-.bit_valid(request_bit),
+.bit_valid(bit_valid),
 
 .modulation(modulation),
 
@@ -93,6 +105,10 @@ else if(symbol_valid)
 symbol_reg <= symbol;
 
 end
+
+
+always_ff @(posedge clk)
+    wave_out_dbg <= wave_out;
 
 /////////////////////////////////////////////////
 // Mapper
@@ -182,4 +198,14 @@ multi_waveform_generator wf(
 
 );
 
+//ila_0 u_ila (
+//    .clk(clk),
+
+//    .probe0(wave_out_dbg),      // [21:0]
+//    .probe1(modulation),    // [1:0]
+//    .probe2(phase),         // [5:0]
+//    .probe3(symbol),        // [6:0]
+//    .probe4(symbol_valid),  // 1 bit
+//    .probe5(enable)         // 1 bit
+//);
 endmodule
